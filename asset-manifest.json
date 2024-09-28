@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/mhacks-2024/static/css/main.11d6058d.css",
-    "main.js": "/mhacks-2024/static/js/main.c231743b.js",
+    "main.js": "/mhacks-2024/static/js/main.fdf377db.js",
     "static/js/453.ed3810f9.chunk.js": "/mhacks-2024/static/js/453.ed3810f9.chunk.js",
     "index.html": "/mhacks-2024/index.html",
     "main.11d6058d.css.map": "/mhacks-2024/static/css/main.11d6058d.css.map",
-    "main.c231743b.js.map": "/mhacks-2024/static/js/main.c231743b.js.map",
+    "main.fdf377db.js.map": "/mhacks-2024/static/js/main.fdf377db.js.map",
     "453.ed3810f9.chunk.js.map": "/mhacks-2024/static/js/453.ed3810f9.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.11d6058d.css",
-    "static/js/main.c231743b.js"
+    "static/js/main.fdf377db.js"
   ]
 }
