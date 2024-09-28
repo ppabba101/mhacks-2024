@@ -47,13 +47,13 @@ def estimate_depth(image_path):
 async def handle_websocket(websocket, path):
     try:
         async for message in websocket:
-            # Assuming 'message' contains the image path sent by the client
             print(f"Received image path: {message}")
             
-            # Perform depth estimation
+            # Assuming the received message is a valid image path
             depth_map = estimate_depth(message)
-            
-            # Convert the depth map to bytes to send back
+            print("Depth map generated")
+
+            # Send the depth map back
             depth_map_bytes = depth_map.tobytes()
             await websocket.send(depth_map_bytes)
             print("Depth map sent back to client")
@@ -63,7 +63,7 @@ async def handle_websocket(websocket, path):
 
 # Start the web socket server
 async def start_server():
-    async with websockets.serve(handle_websocket, "localhost", 8765):
+    async with websockets.serve(handle_websocket, "localhost", 8765, max_size=50 * 1024 * 1024):  # 50 MB limit
         print("Web socket server started on ws://localhost:8765")
         await asyncio.Future()  # Run the server forever
 

@@ -3,16 +3,16 @@ import websockets
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import os
+
 
 async def send_image(image_path):
     uri = "ws://localhost:8765"
     
-    async with websockets.connect(uri) as websocket:
-        # Send image path to the server
+    async with websockets.connect(uri, max_size=50 * 1024 * 1024) as websocket:
         await websocket.send(image_path)
         print(f"Image path sent: {image_path}")
         
-        # Receive the depth map bytes
         depth_map_bytes = await websocket.recv()
         print(f"Depth map received (length: {len(depth_map_bytes)} bytes)")
         
@@ -32,5 +32,5 @@ async def send_image(image_path):
 
 if __name__ == "__main__":
     # Path to the image you want to send
-    image_path = "path_to_your_image.jpg"  # Replace with the actual image path
+    image_path = os.path.expanduser("~/mhacks-2024/room.jpeg")  # Replace 'your_image.jpg' with the actual image name
     asyncio.run(send_image(image_path))
