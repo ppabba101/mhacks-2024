@@ -32,5 +32,5 @@ async def send_image(image_path):
 
 if __name__ == "__main__":
     # Path to the image you want to send
-    image_path = os.path.expanduser("~/mhacks-2024/room.jpeg")  # Replace 'your_image.jpg' with the actual image name
+    image_path = os.path.expanduser("~/mhacks-2024/python_server/room.jpeg")  # Replace 'your_image.jpg' with the actual image name
     asyncio.run(send_image(image_path))
