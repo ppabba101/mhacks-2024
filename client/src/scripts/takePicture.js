@@ -33,7 +33,7 @@ export const takePicture = async (videoElement) => {
         console.log("Success:", data);
 
         // The server returns a JSON array
-        resolve(data.closest_pixels_per_column_normalized_squared);
+        resolve(data.closest_pixels_per_column);
       } catch (error) {
         console.error("Error:", error);
         reject(error);
