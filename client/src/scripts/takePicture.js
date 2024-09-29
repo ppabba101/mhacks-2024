@@ -1,13 +1,13 @@
 // Start of Selection
 import { LOCAL_SERVER_URL } from "./constants.js";
 
-export const takePicture = async (videoElement) => {
+export const takePicture = async (videoElement,ONE) => {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
   // Set canvas size to 10% of the video size
-  canvas.width = videoElement.videoWidth * 0.1;
-  canvas.height = videoElement.videoHeight * 0.1;
+  canvas.width = videoElement.videoWidth * (ONE?0.2:1);
+  canvas.height = videoElement.videoHeight * (ONE?0.2:1);
 
   // Draw the video frame onto the canvas, scaling it down by 90%
   context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
@@ -21,7 +21,7 @@ export const takePicture = async (videoElement) => {
 
       try {
         // POST the image to the server
-        const response = await fetch(`${LOCAL_SERVER_URL}/api/depth`, {
+        const response = await fetch(`${LOCAL_SERVER_URL}/api/${ONE?"one":"depth"}`, {
           method: "POST",
           body: formData,
         });
@@ -35,15 +35,16 @@ export const takePicture = async (videoElement) => {
         console.log("Success:", data);
 
         // Function to create a less abrupt curve
-        const P = 8;
+        const P = 10;
         const smoothStep = (x) => {
           return Math.pow(x, P) / (Math.pow(x, P) + Math.pow(1 - x, P));
         };
-
-        data = data.map(smoothStep);
-
+        let smoothedData = data;
+        if(!ONE){
+          smoothedData = data.map(Math.round);
+        }
         // The server returns a JSON array
-        resolve(data);
+        resolve([smoothedData,data]);
       } catch (error) {
         console.error("Error:", error);
         reject(error);
