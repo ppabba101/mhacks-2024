@@ -1,2 +1,1 @@
-export const SERVER_URL =
-  "http://104.171.203.243:s8775";
+export const LOCAL_SERVER_URL="https://cautious-sniffle-59w4x6xxxcqjj-4000.app.github.dev";

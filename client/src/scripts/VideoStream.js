@@ -10,7 +10,7 @@ const VideoStream = forwardRef((props, ref) => {
   const videoRef = useRef(null);
 
   useEffect(() => {
-    let mode = mobileAndTabletCheck()?"environment":"user"
+    let mode = window.mobileAndTabletCheck()?"environment":"user"
     const startStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
