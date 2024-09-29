@@ -1,4 +1,12 @@
-# depth_estimation_utils.py
+"""
+
+Heavy Weight Implementation of MiDas Small Model for Depth Estimation
+Lots of preprocessing and postprocessing for more accurate results
+Meant for applications where accuracy is more important than speed
+And objects will normally be further from the camera
+Will give inputs for your entire image and multiple objects rather than just the center
+
+"""
 import cv2
 import torch
 import numpy as np
@@ -10,14 +18,12 @@ import cupy as cp
 import cudf
 from cuml.cluster import KMeans as cuKMeans
 import cv2
-import time
 
 # Load MiDaS model and transformations
-#model_type = "DPT_Large"     # MiDaS v3 - Large     (highest accuracy, slowest inference speed)
-model_type = "DPT_Hybrid"   # MiDaS v3 - Hybrid    (medium accuracy, medium inference speed)
-#model_type = "MiDaS_small"  # MiDaS v2.1 - Small   (lowest accuracy, highest inference speed)
-print(f"Loading MiDaS model: {model_type}")
-midas = torch.hub.load("intel-isl/MiDaS", model_type)
+
+small_model_type = "MiDaS_small"  # MiDaS v2.1 - Small   (lowest accuracy, highest inference speed)
+print(f"Loading MiDaS model: {small_model_type}")
+midas = torch.hub.load("intel-isl/MiDaS", small_model_type)
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 midas.to(device)
 midas.eval()
@@ -48,51 +54,6 @@ def estimate_depth(image_path):
 
     print(f"[INFO] Depth estimation completed in {end_time - start_time:.4f} seconds.")
     return depth_map
-
-def estimate_depth1(img):
-    height, width = img.shape[:2]
-    if height > width:
-        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    input_batch = transform(img).to(device)
-    
-    with torch.no_grad():
-        prediction = midas(input_batch)
-        prediction = torch.nn.functional.interpolate(
-            prediction.unsqueeze(1),
-            size=img.shape[:2],
-            mode="bicubic",
-            align_corners=False,
-        ).squeeze()
-    return prediction.cpu().numpy()
-
-def process_depth_map(depth_map):
-    normalized_map = cv2.normalize(depth_map, None, 0, 1, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-    blurred_map = cv2.GaussianBlur(normalized_map, (9, 9), 0)
-    
-    height = blurred_map.shape[0]
-    weights = np.linspace(1, 0.1, height)[:, np.newaxis]
-    weighted_map = blurred_map * weights
-    weighted_mean_per_column = np.sum(weighted_map, axis=0) / np.sum(weights)
-    
-    # Convert to a list of floats with 4 decimal places precision
-    return [round(float(x), 4) for x in weighted_mean_per_column.tolist()]
-    
-def process_center_column(depth_map):
-    normalized_map = cv2.normalize(depth_map, None, 0, 1, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-    blurred_map = cv2.GaussianBlur(normalized_map, (9, 9), 0)
-    
-    height, width = blurred_map.shape
-    center_column = blurred_map[:, width // 2]  # Get the center column
-    
-    weights = np.linspace(1, 0.1, height)[:, np.newaxis]
-    weighted_column = center_column * weights.flatten()  # Apply the weights to the center column
-    
-    weighted_mean_center_column = np.sum(weighted_column) / np.sum(weights)
-    
-    # Return the weighted mean for the center column rounded to 4 decimal places
-    return round(float(weighted_mean_center_column), 4)
 
 def apply_kmeans_with_spatial_color(depth_map, image, num_clusters=3, color_weight=0.1, blur_ksize=(15, 15)):
     print("[INFO] Starting GPU-accelerated K-means clustering process...")
@@ -323,12 +284,12 @@ def annotate_image_with_depth(image_path, clustered_map, centroids, depth_map, r
 
 # Function to visualize the depth map as a heatmap
 def save_depth_map_heatmap(depth_map):
-    # plt.imshow(depth_map, cmap='plasma')  # Use 'plasma' colormap for heatmap
-    # plt.colorbar()  # Add a color bar for reference
-    # plt.title('Depth Map Heatmap')
+    plt.imshow(depth_map, cmap='plasma')  # Use 'plasma' colormap for heatmap
+    plt.colorbar()  # Add a color bar for reference
+    plt.title('Depth Map Heatmap')
     heatmap_path = './depth_map_heatmap.png'
-    # plt.savefig(heatmap_path)  # Save the heatmap as an image
-    # plt.close()
+    plt.savefig(heatmap_path)  # Save the heatmap as an image
+    plt.close()
     return heatmap_path
 
 # Function to plot average pixel values for each column
@@ -336,13 +297,13 @@ def avg_pixel_per_column(depth_map):
     exaggerated_map = cv2.GaussianBlur(depth_map, (9, 9), 0)  # Apply kernel
     
     mean_per_column = np.mean(exaggerated_map, axis=0)
-    # plt.plot(mean_per_column)  # Plot avg pixel values for each column
-    # plt.title("Average Pixel per Column")
-    # plt.xlabel("Column Index")
-    # plt.ylabel("Avg Pixel Value")
-    # avg_pixels_path = "./avg_pixels.png"
-    # plt.savefig(avg_pixels_path)  # Save as an image
-    # plt.close()
+    plt.plot(mean_per_column)  # Plot avg pixel values for each column
+    plt.title("Average Pixel per Column")
+    plt.xlabel("Column Index")
+    plt.ylabel("Avg Pixel Value")
+    avg_pixels_path = "./avg_pixels.png"
+    plt.savefig(avg_pixels_path)  # Save as an image
+    plt.close()
     
     return mean_per_column.tolist()
 

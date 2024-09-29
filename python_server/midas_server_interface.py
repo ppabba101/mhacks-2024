@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import time
-from depth_estimation_utils import *
+from midas_server_utils_medium import * # Utility functions for center column approachw
+from midas_server_utils_small import * # Utility functions for K-means approach
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -10,6 +11,7 @@ CORS(app)
 
 
 # Main route to process image and perform K-means clustering
+# Better for far and abstract obstacles
 @app.route('/api/kmeans-depth', methods=['POST'])
 def process_image_and_kmeans_clusters():
     print("[INFO] Received image, starting processing...")
@@ -58,16 +60,16 @@ def process_image_and_kmeans_clusters():
     # colorized_image_path = colorize_clusters(clustered_map)
 
     # Annotate the image with object locations and depths
-    annotated_image_path = annotate_image_with_depth(file_path, clustered_map, centroids, depth_map)
+    # annotated_image_path = annotate_image_with_depth(file_path, clustered_map, centroids, depth_map)
 
     min_score_threshold = 0.25  # You can adjust this threshold based on the environment
     min_depth = 0
     relevant_centroids = filter_relevant_centroids(centroids, clustered_map, depth_map, min_score_threshold, min_depth)
 
-    relevant_centroids_annotated_image_path = annotate_image_with_depth(f"./image.jpg", clustered_map, relevant_centroids, depth_map, True)
+    # relevant_centroids_annotated_image_path = annotate_image_with_depth(f"./image.jpg", clustered_map, relevant_centroids, depth_map, True)
 
     # Save the depth map as a heatmap
-    depth_map_heatmap_path = save_depth_map_heatmap(depth_map)
+    # depth_map_heatmap_path = save_depth_map_heatmap(depth_map)
 
     # Get the average pixel per column with centroid weighting
     avg_pixels = avg_pixel_per_column_with_centroid_weighting(depth_map, relevant_centroids, clustered_map)
@@ -82,18 +84,8 @@ def process_image_and_kmeans_clusters():
         "avg_pixels_per_column": avg_pixels
     })
 
-def average_middle_third(avg_pixels):
-    # Calculate the start and end indices for the middle third of the list
-    third_len = len(avg_pixels) // 3
-    start_index = third_len
-    end_index = 2 * third_len
-
-    # Get the middle third and calculate the average
-    middle_third = avg_pixels[start_index:end_index]
-    avg_middle_third = sum(middle_third) / len(middle_third)
-    
-    return avg_middle_third
-
+# Main route 2 to process image and output stream like responses of the center columns averaged
+# Better for close obstacles
 @app.route('/api/center', methods=['POST'])
 def process_image_and_depth1():
     time_b = time.time()
@@ -113,7 +105,6 @@ def process_image_and_depth1():
 
     
     depth_map = estimate_depth1(img)
-    #avg_pixel_center = process_center_column(depth_map)
     avg_pixels = process_depth_map(depth_map)
     avg_pixel_center = average_middle_third(avg_pixels)
     
@@ -126,6 +117,7 @@ def process_image_and_depth1():
     print("Time: ", time.time() - time_b)
     return response
 
+# Get images for testing and debugging
 @app.route('/api/get-image', methods=['GET'])
 def get_annotated_image():
     try:
@@ -141,5 +133,6 @@ def get_depth_map_heatmap():
         return jsonify({"error": "Depth map heatmap not found"}), 404
 
 if __name__ == "__main__":
-    context = ('certificate.pem', 'privatekey.pem')  # Path to your certificate and key
+    # Self signed certificates to run via HTTPS
+    context = ('../CERTIFICATES/certificate.pem', '../CERTIFICATES/privatekey.pem') 
     app.run(host="0.0.0.0", port=8775, ssl_context=context, debug=True)
