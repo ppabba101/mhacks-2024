@@ -406,7 +406,7 @@ def avg_pixel_per_column(depth_map):
     
     return mean_per_column.tolist()
 
-def avg_pixel_per_column_with_centroid_weighting(depth_map, centroids, clustered_map, spread=40, edge_range=30):
+def avg_pixel_per_column_with_centroid_weighting(depth_map, centroids, clustered_map, spread=60, edge_range=30):
     """
     Adjust the average pixel value for each column based on the centroid's position,
     resizing the exaggerated map to match the dimensions of the clustered map.
@@ -472,7 +472,7 @@ def avg_pixel_per_column_with_centroid_weighting(depth_map, centroids, clustered
                 mean_per_column[col] = (1 - column_weight) * mean_per_column[col] + column_weight * centroid_mean
 
     # Step 6: Reduce value of columns near the edges of clusters if no other centroid is nearby
-    reduction_factor = 0.8  # You can tune this value
+    reduction_factor = 0.7  # You can tune this value
 
     # Function to check if there is a nearby centroid within the range
     def is_centroid_near(column, centroids, edge_range):
