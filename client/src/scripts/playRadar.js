@@ -16,21 +16,22 @@ export async function playRadar(volumes, duration) {
   oscillator.connect(panner);
   panner.connect(gainNode);
   gainNode.connect(audioCtx.destination);
-  
+
   console.log("playing first ding");
   await playDing(audioCtx, "left");
   console.log("JUST FINIESHED THE DING");
 
-    gainNode.gain.value = 1; // Set initial volume to maximum
-  oscillator.type = "sine";
-  oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4 Note
-  panner.pan.value = -1; // Start at left
   
-  await sleep(1000);
+  await sleep(500);
+  // gainNode.gain.value = 1; // Set initial volume to maximum
   console.log("after sleeping");
   // Rest of the function remains the same...
   // Panning from left (-1) to right (1) over the specified duration
+  gainNode.gain.value = 0;
   oscillator.start();
+  oscillator.type = "sine";
+  oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4 Note
+  panner.pan.value = -1; // Start at left
   panner.pan.linearRampToValueAtTime(1, audioCtx.currentTime + duration);
 
   // Calculate time intervals for volume changes
@@ -40,19 +41,20 @@ export async function playRadar(volumes, duration) {
   // Schedule volume changes
   volumes.forEach((vol, index) => {
     const time = audioCtx.currentTime + index * interval;
-    gainNode.gain.linearRampToValueAtTime(Math.round(vol + 0.15), time);
+    gainNode.gain.setTargetAtTime(vol, time, 0.1);
   });
 
   // Ensure the last volume level is set at the end
-  gainNode.gain.setValueAtTime(
+  gainNode.gain.setTargetAtTime(
     volumes[volumes.length - 1],
-    audioCtx.currentTime + duration
+    audioCtx.currentTime + duration,
+    0.1
   );
 
   // Stop the radar sound after the specified duration
   oscillator.stop(audioCtx.currentTime + duration);
 
-  await sleep(duration*1000 + 500);
+  await sleep(duration * 1000+500);
 
   // Play a "ding" sound after the radar sound (panned to the right)
   console.log("playing second ding");

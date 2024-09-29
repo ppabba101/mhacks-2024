@@ -57,16 +57,21 @@ def estimate_depth(image_path):
 
 
 def apply_kernel_and_exaggerate(depth_map):
+    print(depth_map)
     exaggerated_map = cv2.GaussianBlur(depth_map, (9, 9), 0)
+    print(exaggerated_map)
     min_val = np.min(exaggerated_map)
     max_val = np.max(exaggerated_map)
     normalized_exaggerated_map = (exaggerated_map - min_val) / (max_val - min_val + 1e-6)
+    print(normalized_exaggerated_map)
     cv2.imwrite(f'./normalized_exaggerated_map.png', normalized_exaggerated_map)
     return normalized_exaggerated_map
 
 def closest_pixel_per_column(depth_map):
     exaggerated_map = apply_kernel_and_exaggerate(depth_map)
-    
+    print("----")
+    print("WHAt")
+    print(exaggerated_map)
     # Get the maximum depth value for each column
     closest_per_column = np.max(exaggerated_map, axis=0)
     
@@ -81,7 +86,6 @@ def closest_pixel_per_column(depth_map):
     normalized_closest = (squared_closest - min_val) / (max_val - min_val + 1e-6)
     
     return normalized_closest.tolist()
-
 def avg_pixel_per_column(depth_map):
     exaggerated_map = apply_kernel_and_exaggerate(depth_map)
     
@@ -92,17 +96,53 @@ def avg_pixel_per_column(depth_map):
     # Apply weights to the exaggerated map
     weighted_map = exaggerated_map * weights
     
-    # Calculate the weighted mean for each column
-    weighted_mean_per_column = np.sum(weighted_map, axis=0) / np.sum(weights)
+    # Calculate the initial weighted mean for each column
+    initial_weighted_mean = np.sum(weighted_map, axis=0) / np.sum(weights, axis=0)
     
-    plt.plot(weighted_mean_per_column)  # Plot weighted avg pixel values for each column
-    plt.title("Weighted Average Pixel per Column")
+    # Smooth the initial means by considering neighboring columns
+    # Define the number of neighbors on each side
+    num_neighbors = 2  # You can adjust this value based on desired smoothness
+    
+    # Pad the initial means to handle edge columns
+    padded_means = np.pad(initial_weighted_mean, (num_neighbors, num_neighbors), mode='edge')
+    
+    # Initialize an array to hold the smoothed means
+    smoothed_means = np.zeros_like(initial_weighted_mean)
+    
+    # Iterate over each column to compute the smoothed mean
+    for i in range(len(initial_weighted_mean)):
+        # Extract the window of neighboring means
+        window = padded_means[i:i + 2 * num_neighbors + 1]
+        
+        # Calculate the standard deviation within the window to assess similarity
+        std_dev = np.std(window)
+        
+        # Define a similarity threshold (e.g., low std_dev indicates high similarity)
+        similarity_threshold = 0.005  # Adjust based on data characteristics
+        
+        if std_dev < similarity_threshold:
+            # If neighbors are similar, increase the mean slightly
+            smoothed_means[i] = initial_weighted_mean[i] * 1.50  # 50% increase
+        else:
+            # If neighbors are dissimilar, retain the original mean
+            smoothed_means[i] = initial_weighted_mean[i]
+    
+    # Optionally, you can normalize the smoothed means if needed
+    min_mean = np.min(smoothed_means)
+    max_mean = np.max(smoothed_means)
+    normalized_smoothed_means = (smoothed_means - min_mean) / (max_mean - min_mean + 1e-6)
+    
+    # Plot the smoothed and normalized means
+    plt.plot(normalized_smoothed_means, label='Smoothed Weighted Mean')
+    plt.title("Smoothed Weighted Mean Pixel per Column")
     plt.xlabel("Column Index")
-    plt.ylabel("Weighted Avg Pixel Value")
-    plt.savefig(f"./weighted_avg_pixels.png")  # Save as an image
+    plt.ylabel("Normalized Weighted Mean Pixel Value")
+    plt.legend()
+    plt.savefig(f"./smoothed_weighted_mean_pixels.png")  # Save as an image
     plt.close()
     
-    return weighted_mean_per_column.tolist()
+    return normalized_smoothed_means.tolist()
+
 
 def normalize_depth_map(depth_map):
     # cv2.imwrite(f'./depth_map.png', depth_map)
@@ -168,7 +208,7 @@ def process_image_and_closest_pixel():
         return jsonify({"error": "No selected file"}), 400
 
     file_path = f"./image.jpg"
-    file.save(file_path)
+    # file.save(file_path)
 
     # Sets depth map to the results of the MiDaS model
     try:
