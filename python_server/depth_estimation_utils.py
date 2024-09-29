@@ -44,7 +44,7 @@ def estimate_depth(image_path):
     print(f"[INFO] Depth estimation completed in {end_time - start_time:.4f} seconds.")
     return depth_map
 
-def apply_kmeans_with_spatial_color(depth_map, image, num_clusters=3, color_weight=0.1):
+def apply_kmeans_with_spatial_color(depth_map, image, num_clusters=3, color_weight=0.1, blur_ksize=(15, 15)):
     print("[INFO] Starting K-means clustering process...")
     start_time = time.time()
 
@@ -60,6 +60,12 @@ def apply_kmeans_with_spatial_color(depth_map, image, num_clusters=3, color_weig
     resized_depth_map = cv2.resize(depth_map, (new_width, fixed_height), interpolation=cv2.INTER_LINEAR)
     resized_image = cv2.resize(image, (new_width, fixed_height), interpolation=cv2.INTER_LINEAR)
 
+    # Step 1: Apply Gaussian blur to the RGB channels of the image to smooth color surfaces
+    blurred_image = cv2.GaussianBlur(resized_image, blur_ksize, 0)
+    blurred_image_path = './blurred_image.png'
+    cv2.imwrite(blurred_image_path, blurred_image)
+
+
     # Create meshgrid for spatial information
     height, width = resized_depth_map.shape
     y_coords, x_coords = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
@@ -74,17 +80,17 @@ def apply_kmeans_with_spatial_color(depth_map, image, num_clusters=3, color_weig
     x_normalized = x_flat / width
     y_normalized = y_flat / height
 
-    # Extract RGB channels from the resized image
-    r_channel = resized_image[:, :, 0].flatten()
-    g_channel = resized_image[:, :, 1].flatten()
-    b_channel = resized_image[:, :, 2].flatten()
+    # Extract RGB channels from the blurred image
+    r_channel = blurred_image[:, :, 0].flatten()
+    g_channel = blurred_image[:, :, 1].flatten()
+    b_channel = blurred_image[:, :, 2].flatten()
 
     # Normalize RGB values to be between 0 and 1, and reduce their influence by scaling
     r_normalized = (r_channel / 255.0) * color_weight
     g_normalized = (g_channel / 255.0) * color_weight
     b_normalized = (b_channel / 255.0) * color_weight
 
-    # Stack features for clustering (including RGB values)
+    # Stack features for clustering (including RGB values with reduced importance)
     features = np.stack([x_normalized, y_normalized, depth_normalized, r_normalized, g_normalized, b_normalized], axis=1)
     print(features.shape)
     print("[INFO] Running K-Means...")
