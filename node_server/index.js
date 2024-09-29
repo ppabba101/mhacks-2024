@@ -6,7 +6,7 @@ const FormData = require("form-data");
 const cors = require("cors");
 require("dotenv").config();
 
-const SERVER_IP="https://104.171.203.243:8775";
+const SERVER_IP="https://150.136.71.52:8775";
 
 const app = express();
 const upload = multer();
