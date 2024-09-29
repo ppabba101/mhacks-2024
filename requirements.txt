@@ -1,0 +1,10 @@
+Flask
+opencv-python
+torch
+torchvision
+timm
+numpy
+Flask-Cors
+scipy
+matplotlib
+uuid
