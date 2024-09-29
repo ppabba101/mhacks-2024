@@ -1,2 +1,2 @@
 export const LOCAL_SERVER_URL =
-  "https://improved-rotary-phone-pqv5jvwjg57h7xv9-8775.app.github.dev/";
+  "https://cautious-sniffle-59w4x6xxxcqjj-4000.app.github.dev";

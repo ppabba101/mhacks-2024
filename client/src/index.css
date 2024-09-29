@@ -4,6 +4,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 #radar {
   z-index: 1000;

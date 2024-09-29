@@ -1,13 +1,13 @@
 // Start of Selection
 import { LOCAL_SERVER_URL } from "./constants.js";
 
-export const takePicture = async (videoElement,ONE) => {
+export const takePicture = async (videoElement, ONE) => {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
   // Set canvas size to 10% of the video size
-  canvas.width = videoElement.videoWidth * (ONE?0.2:1);
-  canvas.height = videoElement.videoHeight * (ONE?0.2:1);
+  canvas.width = videoElement.videoWidth * (ONE ? .85 : 1);
+  canvas.height = videoElement.videoHeight * (ONE ? .85 : 1);
 
   // Draw the video frame onto the canvas, scaling it down by 90%
   context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
@@ -40,11 +40,23 @@ export const takePicture = async (videoElement,ONE) => {
           return Math.pow(x, P) / (Math.pow(x, P) + Math.pow(1 - x, P));
         };
         let smoothedData = data;
-        if(!ONE){
+        if (!ONE) {
           smoothedData = data.map(Math.round);
+        } else {
+          // // Isolate the center N columns
+          // const N = 15; // This can be changed to any desired value
+          // const centerIndex = Math.floor(data.length / 2);
+          // const start = Math.max(0, centerIndex - Math.floor(N / 2));
+          // const end = Math.min(data.length, start + N);
+          // smoothedData = data.slice(start, end);
+          // const avg =
+          //   smoothedData.reduce((a, b) => a + b, 0) / smoothedData.length;
+          // smoothedData = [avg];
+          smoothedData=[data]
+          console.log(smoothedData);
         }
         // The server returns a JSON array
-        resolve([smoothedData,data]);
+        resolve(smoothedData);
       } catch (error) {
         console.error("Error:", error);
         reject(error);

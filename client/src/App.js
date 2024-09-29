@@ -7,10 +7,9 @@ import VideoStream from "./scripts/VideoStream.js";
 const PLAY_INTERVAL = 1.5;
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-const ONE = location.href.includes("ONE");
-
 function App() {
-  const [radarPlaying, setRadarPlaying] = useState(false);
+  const [ONE, setONE] = useState(false);
+  const [started, setStarted] = useState(false);
   const videoRef = useRef(null);
   const oscillatorRef = useRef(null);
   const gainNodeRef = useRef(null);
@@ -35,61 +34,64 @@ function App() {
         gainNodeRef.current.disconnect();
       }
     };
-  }, []);
-
-  const handleTakePicture = async () => {
-    if (audioCtx.state === "suspended") {
-      await audioCtx.resume();
-      console.log("AudioContext resumed");
-    }
-
-    if (videoRef.current) {
-      if (!ONE) await playCamera();
-      const [data, pitches] = await takePicture(videoRef.current, ONE);
-      if (ONE) {
-        updateContinuousSound(data);
-      } else {
-        await playRadar(data, PLAY_INTERVAL, pitches);
-      }
-      console.log("played radar");
-      setTimeout(handleTakePicture, ONE ? 100 : 750);
-    } else {
-      console.error("Video element not available");
-    }
-  };
+  }, [ONE]);
 
   useEffect(() => {
-    document.onmousedown = handleTakePicture;
-  }, []);
+    console.log("THIS EFFECT IS RUNNING");
+    let processFrame = async () => {
+      console.log("RUNNING PROCESS FRAME WITH ONE AS ",ONE);
+      if (audioCtx.state === "suspended") {
+        await audioCtx.resume();
+      }
+
+      if (videoRef.current) {
+        if (!ONE) await playCamera();
+        const data = await takePicture(videoRef.current, ONE);
+        if (ONE) {
+          updateContinuousSound(data[0]);
+        } else {
+          await playRadar(data, PLAY_INTERVAL);
+          console.log("played radar");
+        }
+      } else {
+        console.error("Video element not available");
+      }
+      console.log("SETTING TIMEOUT", ONE ? 0 : 750);
+      setTimeout(()=>{
+        console.log("RUNNING IT AGAIN!!!",processFrame);
+        processFrame();
+      }, ONE ? 0 : 750);
+    };
+
+    console.log("started", window.ran);
+    if (!window.ran) {
+      window.ran = true;
+      
+      console.log("RUNNING PROCESS!",started)
+      processFrame();
+    }
+
+    return () => {
+      processFrame=()=>{}
+    };
+  }, [ONE, started]);
 
   const updateContinuousSound = (volume) => {
     if (oscillatorRef.current && gainNodeRef.current) {
-      console.log(volume);
+      const roundedVolume = Math.round(volume * 4) / 4;
+      volume = Math.max(0, Math.min(1, roundedVolume)); // Ensure it's between 0 and 1
       const frequency = volume * 1000; // Calculate target frequency based on volume
 
-      // Define the transition duration in seconds
       const transitionDuration = 0.05;
-
-      // Get the current time of the audio context
       const currentTime = audioCtx.currentTime;
 
-      // Set the starting value for the frequency to ensure a smooth ramp
       oscillatorRef.current.frequency.setValueAtTime(
         oscillatorRef.current.frequency.value,
         currentTime
       );
 
-      // Schedule the frequency to ramp to the new value smoothly
       oscillatorRef.current.frequency.linearRampToValueAtTime(
         frequency,
-        currentTime + transitionDuration
-      );
-
-      // Adjust volume as needed (optional smooth volume transition)
-      const gain = 1;
-      gainNodeRef.current.gain.setValueAtTime(gain, currentTime);
-      gainNodeRef.current.gain.linearRampToValueAtTime(
-        gain,
         currentTime + transitionDuration
       );
     }
@@ -110,7 +112,21 @@ function App() {
       >
         ⬆️
       </a>
-      <VideoStream ref={videoRef} />
+      <VideoStream onClick={() => {
+       window.ran=false;
+       setONE(!ONE);
+       setStarted(false);
+      }} ref={videoRef} />
+      <div  style={{
+          top: "0px",
+          left: "0px",
+          width: "100%",
+          textAlign: "center",
+          color: "white",
+          fontSize:"30px"
+        }}>
+          {ONE?"Stream":"Radar"}
+      </div>
     </div>
   );
 }

@@ -20,7 +20,7 @@ app.post("/api/depth", upload.single("image"), async (req, res) => {
     formData.append("image", req.file.buffer, "image.jpg");
 
     const agent = new https.Agent({ rejectUnauthorized: false });
-
+    console.log("FETCHING")
     const response = await axios.post(
       `${SERVER_IP}/api/kmeans-depth`,
       formData,
