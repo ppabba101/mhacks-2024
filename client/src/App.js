@@ -1,10 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "./App.css";
 import { playRadar } from "./scripts/playRadar.js";
 import { takePicture } from "./scripts/takePicture.js";
 import VideoStream from "./scripts/VideoStream.js";
 
-const PLAY_INTERVAL = 1;
+const PLAY_INTERVAL = 2;
 
 function App() {
   const [radarPlaying, setRadarPlaying] = useState(false);
@@ -42,12 +42,14 @@ function App() {
   //   }, PLAY_INTERVAL);
   // }, []);
 
+useEffect(()=>{
+document.onmousedown = handleTakePicture;
+},[])
+
   return (
     <div>
       <VideoStream ref={videoRef} />
-      <button id="take-picture" onClick={handleTakePicture}>
-        Take Picture
-      </button>
+      
     </div>
   );
 }
