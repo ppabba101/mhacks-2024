@@ -1,2 +1,2 @@
 export const SERVER_URL =
-  "http://104.171.203.243:s8775";
+  "https://improved-rotary-phone-pqv5jvwjg57h7xv9-8775.app.github.dev/";

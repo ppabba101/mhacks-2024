@@ -20,7 +20,7 @@ export const takePicture = async (videoElement) => {
 
       try {
         // POST the image to the server
-        const response = await fetch(`${SERVER_URL}/api/depth`, {
+        const response = await fetch(`${SERVER_URL}/api/kmeans-depth`, {
           method: "POST",
           body: formData,
         });

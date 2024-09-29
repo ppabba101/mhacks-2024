@@ -31,6 +31,14 @@ def process_image_and_kmeans_clusters():
         # Read the image file
         image = cv2.imread(file_path)
 
+        # Check if the image needs to be rotated (height > width)
+        height, width, _ = image.shape
+        if height > width:
+            print("[INFO] Rotating image 90 degrees to the left (height > width).")
+            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            # Save the rotated image back
+            cv2.imwrite(file_path, image)
+
         # Estimate the depth map
         depth_map = estimate_depth(file_path)
     except Exception as e:
@@ -38,7 +46,7 @@ def process_image_and_kmeans_clusters():
         return jsonify({"error": f"Depth estimation failed: {str(e)}"}), 500
 
     num_clusters = 10
-    color_weight = 0.50
+    color_weight = 0.65
     blur_ksize=(15, 15)
     clustered_map, cluster_centers = apply_kmeans_with_spatial_color(depth_map, image, num_clusters, color_weight, blur_ksize)
 
@@ -51,8 +59,8 @@ def process_image_and_kmeans_clusters():
     # Annotate the image with object locations and depths
     annotated_image_path = annotate_image_with_depth(file_path, clustered_map, centroids, depth_map)
 
-    min_score_threshold = 0.45  # You can adjust this threshold based on the environment
-    min_depth = 1500
+    min_score_threshold = 0.25  # You can adjust this threshold based on the environment
+    min_depth = 0
     relevant_centroids = filter_relevant_centroids(centroids, clustered_map, depth_map, min_score_threshold, min_depth)
 
     relevant_centroids_annotated_image_path = annotate_image_with_depth(f"./image.jpg", clustered_map, relevant_centroids, depth_map, True)
