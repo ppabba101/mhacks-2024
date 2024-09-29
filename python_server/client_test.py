@@ -22,7 +22,7 @@ def resize_image(image_path, scale_factor=0.1):
         return file_like_object
 
 def send_image_and_get_depth(image_path):
-    url = 'http://132.145.192.198:8775/api/depth'
+    url = 'http://104.171.203.243:8775/api/depth'
     files = resize_image(image_path)
     
     response = requests.post(url, files=files)
