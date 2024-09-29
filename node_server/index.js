@@ -29,13 +29,36 @@ app.post("/api/depth", upload.single("image"), async (req, res) => {
         httpsAgent: agent,
       }
     );
-    
+
     res.status(response.status).json(response.data);
   } catch (error) {
     console.error("Error forwarding the image:", error);
     res.status(500).json({ error: "Failed to process image" });
   }
 });
+
+app.post("/api/one", upload.single("image"), async (req, res) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", req.file.buffer, "image.jpg");
+  
+      const agent = new https.Agent({ rejectUnauthorized: false });
+  
+      const response = await axios.post(
+        `${SERVER_IP}/api/center`,
+        formData,
+        {
+          headers: formData.getHeaders(),
+          httpsAgent: agent,
+        }
+      );
+      
+      res.status(response.status).json(response.data);
+    } catch (error) {
+      console.error("Error forwarding the image:", error);
+      res.status(500).json({ error: "Failed to process image" });
+    }
+  });
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

@@ -4,7 +4,7 @@ async function sleep(time) {
   });
 }
 
-export async function playRadar(volumes, duration) {
+export async function playRadar(volumes, duration,pitches) {
   // Initialize Audio Context
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   const audioCtx = new AudioContext();
@@ -22,7 +22,7 @@ export async function playRadar(volumes, duration) {
   console.log("JUST FINIESHED THE DING");
 
   
-  await sleep(500);
+  await sleep(300);
   // gainNode.gain.value = 1; // Set initial volume to maximum
   console.log("after sleeping");
   // Rest of the function remains the same...
@@ -42,6 +42,7 @@ export async function playRadar(volumes, duration) {
   volumes.forEach((vol, index) => {
     const time = audioCtx.currentTime + index * interval;
     gainNode.gain.setTargetAtTime(vol, time, 0.1);
+    // if(pitches)oscillator.frequency.setValueAtTime(440*pitches[index],time)
   });
 
   // Ensure the last volume level is set at the end
@@ -54,7 +55,7 @@ export async function playRadar(volumes, duration) {
   // Stop the radar sound after the specified duration
   oscillator.stop(audioCtx.currentTime + duration);
 
-  await sleep(duration * 1000+500);
+  await sleep(duration * 1000+300);
 
   // Play a "ding" sound after the radar sound (panned to the right)
   console.log("playing second ding");
@@ -73,7 +74,7 @@ async function playDing(audioCtx, direction) {
 
     dingGain.gain.setValueAtTime(0, audioCtx.currentTime);
     dingGain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
-    dingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+    dingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
 
     dingPanner.pan.value = direction === "left" ? -1 : 1;
 
@@ -82,7 +83,7 @@ async function playDing(audioCtx, direction) {
     dingGain.connect(audioCtx.destination);
 
     oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 0.5);
+    oscillator.stop(audioCtx.currentTime + 0.3);
 
     oscillator.onended = () => {
       oscillator.disconnect();
