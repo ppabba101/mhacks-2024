@@ -29,11 +29,23 @@ export const takePicture = async (videoElement) => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json();
+        let data = await response.json();
+        data=data.closest_pixels_per_column;
         console.log("Success:", data);
 
+        
+  // Function to create a less abrupt curve
+  const P = 8;
+  const smoothStep = (x) => {
+    return Math.pow(x,P)/(Math.pow(x,P)+Math.pow(1-x,P))
+  };
+
+  
+  data=data.map(smoothStep);
+
+
         // The server returns a JSON array
-        resolve(data.closest_pixels_per_column);
+        resolve(data);
       } catch (error) {
         console.error("Error:", error);
         reject(error);
