@@ -13,7 +13,9 @@ function App() {
   const handleTakePicture = async () => {
     if (videoRef.current) {
       const data = await takePicture(videoRef.current);
-      playRadar(data, PLAY_INTERVAL);
+      await playRadar(data, PLAY_INTERVAL);
+      console.log("played radar");
+      setTimeout(handleTakePicture,1000);
       return;
       const newWindow = window.open("", "_blank", "width=800,height=200");
       // Create a canvas element in the new window
