@@ -39,7 +39,8 @@ def process_image_and_kmeans_clusters():
 
     num_clusters = 10
     color_weight = 0.50
-    clustered_map, cluster_centers = apply_kmeans_with_spatial_color(depth_map, image, num_clusters, color_weight)
+    blur_ksize=(15, 15)
+    clustered_map, cluster_centers = apply_kmeans_with_spatial_color(depth_map, image, num_clusters, color_weight, blur_ksize)
 
     # Calculate the centroids (center of mass) of each cluster
     centroids = calculate_cluster_centroids(clustered_map)
