@@ -6,8 +6,8 @@ export const takePicture = async (videoElement) => {
   const context = canvas.getContext("2d");
 
   // Set canvas size to 10% of the video size
-  canvas.width = videoElement.videoWidth * 0.1;
-  canvas.height = videoElement.videoHeight * 0.1;
+  canvas.width = videoElement.videoWidth;
+  canvas.height = videoElement.videoHeight;
 
   // Draw the video frame onto the canvas, scaling it down by 90%
   context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
@@ -21,7 +21,7 @@ export const takePicture = async (videoElement) => {
 
       try {
         // POST the image to the server
-        const response = await fetch(`${LOCAL_SERVER_URL}/api/depth`, {
+        const response = await fetch(`${LOCAL_SERVER_URL}/api/kmeans-depth`, {
           method: "POST",
           body: formData,
         });
